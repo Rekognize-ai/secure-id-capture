@@ -116,6 +116,18 @@ export default function FacialCapture() {
       <main className="flex-1 flex flex-col">
         {/* Camera view */}
         <div className="relative flex-1 bg-black overflow-hidden">
+        {/* Always render video element to keep stream attached */}
+          <video
+            ref={videoRef}
+            className={cn(
+              "w-full h-full object-cover",
+              currentCapture && "hidden"
+            )}
+            playsInline
+            muted
+            style={{ transform: 'scaleX(-1)' }}
+          />
+
           {error ? (
             <div className="absolute inset-0 flex items-center justify-center p-6 text-center">
               <div>
@@ -126,7 +138,7 @@ export default function FacialCapture() {
               </div>
             </div>
           ) : currentCapture ? (
-            // Show captured image
+            // Show captured image overlay
             <div className="absolute inset-0">
               <img 
                 src={currentCapture.base64} 
@@ -146,16 +158,8 @@ export default function FacialCapture() {
               </div>
             </div>
           ) : (
-            // Live camera view
+            // Live camera overlay
             <>
-              <video
-                ref={videoRef}
-                className="w-full h-full object-cover"
-                playsInline
-                muted
-                style={{ transform: 'scaleX(-1)' }}
-              />
-              
               {isLoading && (
                 <div className="absolute inset-0 flex items-center justify-center bg-black/50">
                   <div className="text-center text-primary-foreground">

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useEnrollment } from '@/context/EnrollmentContext';
 import { useCamera } from '@/hooks/useCamera';
@@ -16,6 +16,8 @@ const captureSteps: { view: CaptureView; label: string }[] = [
   { view: 'left', label: 'Left Profile' },
   { view: 'right', label: 'Right Profile' },
 ];
+
+const AUTO_CAPTURE_DELAY = 2000; // 2 seconds
 
 // Simulate image quality assessment - boost quality if face was well positioned
 function assessImageQuality(wasWellPositioned: boolean): ImageQuality {
@@ -40,6 +42,11 @@ export default function FacialCapture() {
     right: null,
   });
   const [isCapturing, setIsCapturing] = useState(false);
+  const [autoCaptureProgress, setAutoCaptureProgress] = useState(0);
+  
+  // Auto-capture timer refs
+  const wellPositionedStartRef = useRef<number | null>(null);
+  const autoCaptureIntervalRef = useRef<number>();
 
   const currentView = captureSteps[currentStep].view;
   const currentCapture = capturedImages[currentView];
@@ -61,6 +68,84 @@ export default function FacialCapture() {
   useEffect(() => {
     startCamera();
   }, []);
+
+  // Auto-capture logic
+  const handleAutoCapture = useCallback(async () => {
+    if (isCapturing || currentCapture) return;
+    
+    setIsCapturing(true);
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    const base64 = captureImage();
+    if (base64) {
+      const quality = assessImageQuality(true); // Always good quality for auto-capture
+      
+      setCapturedImages(prev => ({
+        ...prev,
+        [currentView]: { base64, quality },
+      }));
+
+      addCapturedImage({
+        view: currentView,
+        base64,
+        quality,
+        timestamp: new Date().toISOString(),
+      });
+
+      // Auto-advance to next step
+      if ((quality === 'good' || quality === 'fair') && currentStep < captureSteps.length - 1) {
+        setTimeout(() => setCurrentStep(prev => prev + 1), 1000);
+      }
+    }
+    
+    setIsCapturing(false);
+    setAutoCaptureProgress(0);
+    wellPositionedStartRef.current = null;
+  }, [isCapturing, currentCapture, captureImage, currentView, addCapturedImage, currentStep]);
+
+  // Track face position for auto-capture
+  useEffect(() => {
+    if (!isReady || currentCapture || isCapturing || !isFaceDetectionSupported) {
+      wellPositionedStartRef.current = null;
+      setAutoCaptureProgress(0);
+      if (autoCaptureIntervalRef.current) {
+        clearInterval(autoCaptureIntervalRef.current);
+      }
+      return;
+    }
+
+    if (facePosition.isWellPositioned) {
+      if (!wellPositionedStartRef.current) {
+        wellPositionedStartRef.current = Date.now();
+      }
+      
+      // Update progress
+      autoCaptureIntervalRef.current = window.setInterval(() => {
+        if (wellPositionedStartRef.current) {
+          const elapsed = Date.now() - wellPositionedStartRef.current;
+          const progress = Math.min((elapsed / AUTO_CAPTURE_DELAY) * 100, 100);
+          setAutoCaptureProgress(progress);
+          
+          if (elapsed >= AUTO_CAPTURE_DELAY) {
+            clearInterval(autoCaptureIntervalRef.current);
+            handleAutoCapture();
+          }
+        }
+      }, 50);
+    } else {
+      wellPositionedStartRef.current = null;
+      setAutoCaptureProgress(0);
+      if (autoCaptureIntervalRef.current) {
+        clearInterval(autoCaptureIntervalRef.current);
+      }
+    }
+
+    return () => {
+      if (autoCaptureIntervalRef.current) {
+        clearInterval(autoCaptureIntervalRef.current);
+      }
+    };
+  }, [facePosition.isWellPositioned, isReady, currentCapture, isCapturing, isFaceDetectionSupported, handleAutoCapture]);
 
   const allCaptured = Object.values(capturedImages).every(img => img !== null);
 
@@ -184,6 +269,7 @@ export default function FacialCapture() {
                   isCapturing={isCapturing}
                   faceStatus={facePosition}
                   isDetectionSupported={isFaceDetectionSupported}
+                  autoCaptureProgress={autoCaptureProgress}
                 />
               )}
             </>

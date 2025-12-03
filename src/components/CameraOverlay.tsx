@@ -15,6 +15,7 @@ interface CameraOverlayProps {
   isCapturing?: boolean;
   faceStatus?: FaceDetectionStatus;
   isDetectionSupported?: boolean;
+  autoCaptureProgress?: number;
   className?: string;
 }
 
@@ -23,6 +24,7 @@ export function CameraOverlay({
   isCapturing = false, 
   faceStatus,
   isDetectionSupported = false,
+  autoCaptureProgress = 0,
   className 
 }: CameraOverlayProps) {
   const getViewInstructions = () => {
@@ -138,7 +140,9 @@ export function CameraOverlay({
             {isWellPositioned ? (
               <>
                 <Check size={18} />
-                <span className="text-sm font-medium">Face detected</span>
+                <span className="text-sm font-medium">
+                  {autoCaptureProgress > 0 ? `Auto-capturing... ${Math.round(autoCaptureProgress)}%` : 'Hold still...'}
+                </span>
               </>
             ) : faceStatus.isDetected ? (
               <>
@@ -152,6 +156,16 @@ export function CameraOverlay({
               </>
             )}
           </div>
+          
+          {/* Auto-capture progress bar */}
+          {autoCaptureProgress > 0 && (
+            <div className="mt-2 w-48 h-1.5 bg-muted/50 rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-success transition-all duration-100 ease-linear rounded-full"
+                style={{ width: `${autoCaptureProgress}%` }}
+              />
+            </div>
+          )}
         </div>
       )}
 

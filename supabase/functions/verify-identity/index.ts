@@ -52,6 +52,15 @@ serve(async (req) => {
 
     console.log(`Found ${enrollments.length} enrollments with images`);
 
+    // Helper to ensure proper data URL format
+    const ensureDataUrl = (img: string): string => {
+      if (img.startsWith('data:image/')) {
+        return img;
+      }
+      // Assume JPEG if no prefix
+      return `data:image/jpeg;base64,${img}`;
+    };
+
     // Use AI to compare faces
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
@@ -79,7 +88,7 @@ Here is the captured face to verify:`
       },
       {
         type: "image_url",
-        image_url: { url: imageBase64 }
+        image_url: { url: ensureDataUrl(imageBase64) }
       },
       {
         type: "text",
@@ -98,7 +107,7 @@ Here is the captured face to verify:`
         });
         imageContents.push({
           type: "image_url",
-          image_url: { url: enrollment.image_front }
+          image_url: { url: ensureDataUrl(enrollment.image_front) }
         });
       }
     }

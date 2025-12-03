@@ -8,6 +8,8 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 
 import Auth from "./pages/Auth";
 import Home from "./pages/Home";
+import AdminDashboard from "./pages/AdminDashboard";
+import { AdminRoute } from "./components/AdminRoute";
 import Profile from "./pages/Profile";
 import EnrollmentForm from "./pages/EnrollmentForm";
 import FacialCapture from "./pages/FacialCapture";
@@ -38,6 +40,7 @@ const App = () => (
             <Route path="/enrollment-success" element={<ProtectedRoute><EnrollmentSuccess /></ProtectedRoute>} />
             <Route path="/sync" element={<ProtectedRoute><SyncScreen /></ProtectedRoute>} />
             <Route path="/verify" element={<ProtectedRoute><VerifyIdentity /></ProtectedRoute>} />
+            <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

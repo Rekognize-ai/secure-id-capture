@@ -3,11 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import { useEnrollment } from '@/context/EnrollmentContext';
 import { useAuth } from '@/hooks/useAuth';
+import { useUserRole } from '@/hooks/useUserRole';
 import { supabase } from '@/integrations/supabase/client';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { StatusBadge } from '@/components/StatusBadge';
 import { Button } from '@/components/ui/button';
-import { UserPlus, ShieldCheck, RefreshCw, Users, Fingerprint, LogOut, UserCircle } from 'lucide-react';
+import { UserPlus, ShieldCheck, RefreshCw, Users, Fingerprint, LogOut, UserCircle, Settings } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function Home() {
@@ -15,6 +16,7 @@ export default function Home() {
   const { isOnline } = useNetworkStatus();
   const { pendingEnrollments, setEnrollmentType } = useEnrollment();
   const { user, signOut } = useAuth();
+  const { isAdmin } = useUserRole();
   const [officerName, setOfficerName] = useState<string | null>(null);
 
   useEffect(() => {
@@ -72,6 +74,16 @@ export default function Home() {
                 label={`${pendingCount} pending`}
                 size="md"
               />
+            )}
+            {isAdmin && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => navigate('/admin')}
+                className="text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/10"
+              >
+                <Settings size={20} />
+              </Button>
             )}
             <Button
               variant="ghost"

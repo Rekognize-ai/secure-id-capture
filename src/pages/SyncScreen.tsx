@@ -7,7 +7,7 @@ import { PrimaryButton } from '@/components/PrimaryButton';
 import { StatusBadge } from '@/components/StatusBadge';
 import { SyncCard } from '@/components/SyncCard';
 import { syncRecords } from '@/services/apiService';
-import { updateRecordStatus, clearRecordImages, deleteRecord } from '@/services/storageService';
+import { updateRecordStatus, clearRecordImages, deleteRecord } from '@/services/databaseService';
 import { RefreshCw, CloudOff, Cloud, CheckCircle, Wifi, WifiOff } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -47,10 +47,10 @@ export default function SyncScreen() {
     setSyncProgress(0);
 
     // Mark all as uploading
-    recordsToSync.forEach(record => {
-      updateRecordStatus(record.id, 'uploading');
-    });
-    refreshPendingEnrollments();
+    await Promise.all(recordsToSync.map(record => 
+      updateRecordStatus(record.id, 'uploading')
+    ));
+    await refreshPendingEnrollments();
 
     try {
       const { synced, failed } = await syncRecords(recordsToSync);
@@ -60,17 +60,18 @@ export default function SyncScreen() {
       setSyncProgress(100);
 
       // Update statuses
-      synced.forEach(id => {
-        updateRecordStatus(id, 'uploaded');
-        // Security: Clear images after successful sync
-        clearRecordImages(id);
-      });
+      await Promise.all([
+        ...synced.map(async (id) => {
+          await updateRecordStatus(id, 'uploaded');
+          // Security: Clear images after successful sync
+          await clearRecordImages(id);
+        }),
+        ...failed.map(({ id, error }) => 
+          updateRecordStatus(id, 'failed', error)
+        )
+      ]);
 
-      failed.forEach(({ id, error }) => {
-        updateRecordStatus(id, 'failed', error);
-      });
-
-      refreshPendingEnrollments();
+      await refreshPendingEnrollments();
 
       if (synced.length > 0) {
         toast.success(`Successfully synced ${synced.length} enrollment(s)`);
@@ -91,27 +92,27 @@ export default function SyncScreen() {
     const record = pendingEnrollments.find(r => r.id === id);
     if (!record) return;
 
-    updateRecordStatus(id, 'uploading');
-    refreshPendingEnrollments();
+    await updateRecordStatus(id, 'uploading');
+    await refreshPendingEnrollments();
 
     const { synced, failed } = await syncRecords([record]);
 
     if (synced.length > 0) {
-      updateRecordStatus(id, 'uploaded');
-      clearRecordImages(id);
+      await updateRecordStatus(id, 'uploaded');
+      await clearRecordImages(id);
       toast.success('Record synced successfully');
     } else {
-      updateRecordStatus(id, 'failed', failed[0]?.error);
+      await updateRecordStatus(id, 'failed', failed[0]?.error);
       toast.error('Sync failed');
     }
 
-    refreshPendingEnrollments();
+    await refreshPendingEnrollments();
   };
 
-  const handleClearUploaded = () => {
+  const handleClearUploaded = async () => {
     const uploadedRecords = pendingEnrollments.filter(r => r.status === 'uploaded');
-    uploadedRecords.forEach(record => deleteRecord(record.id));
-    refreshPendingEnrollments();
+    await Promise.all(uploadedRecords.map(record => deleteRecord(record.id)));
+    await refreshPendingEnrollments();
     toast.success('Cleared uploaded records');
   };
 

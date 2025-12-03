@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import { useEnrollment } from '@/context/EnrollmentContext';
 import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { StatusBadge } from '@/components/StatusBadge';
 import { Button } from '@/components/ui/button';
@@ -14,6 +15,23 @@ export default function Home() {
   const { isOnline } = useNetworkStatus();
   const { pendingEnrollments, setEnrollmentType } = useEnrollment();
   const { user, signOut } = useAuth();
+  const [officerName, setOfficerName] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchProfile() {
+      if (!user) return;
+      const { data } = await supabase
+        .from('profiles')
+        .select('first_name, last_name')
+        .eq('user_id', user.id)
+        .single();
+      if (data) {
+        const name = [data.first_name, data.last_name].filter(Boolean).join(' ');
+        setOfficerName(name || null);
+      }
+    }
+    fetchProfile();
+  }, [user]);
 
   const pendingCount = pendingEnrollments.filter(
     r => r.status === 'pending' || r.status === 'failed'
@@ -79,8 +97,10 @@ export default function Home() {
             <Fingerprint size={36} className="text-primary-foreground" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold">Prison Enrollment</h1>
-            <p className="text-primary-foreground/80">System</p>
+            <h1 className="text-2xl font-bold">
+              {officerName ? `Welcome, ${officerName}` : 'Prison Enrollment'}
+            </h1>
+            <p className="text-primary-foreground/80">Enrollment System</p>
           </div>
         </div>
       </header>

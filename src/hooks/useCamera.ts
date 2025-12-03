@@ -118,9 +118,10 @@ export function useCamera(options: UseCameraOptions = {}): UseCameraReturn {
 
   // Restart camera when facing mode changes
   useEffect(() => {
-    if (isReady || isLoading) {
+    if (streamRef.current) {
       startCamera();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [facingMode]);
 
   // Cleanup on unmount

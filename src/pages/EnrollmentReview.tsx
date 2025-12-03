@@ -8,6 +8,7 @@ import { User, Calendar, Building2, Check, Edit, Send, Camera, ShieldCheck } fro
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { EnrollmentFormData } from '@/types/enrollment';
 
 export default function EnrollmentReview() {
   const navigate = useNavigate();
@@ -23,7 +24,7 @@ export default function EnrollmentReview() {
 
   if (!currentEnrollment) return null;
 
-  const form = currentEnrollment.form || {};
+  const form = (currentEnrollment.form || {}) as EnrollmentFormData;
   const images = currentEnrollment.images || {};
   const qualities = currentEnrollment.imageQualities || {};
   const isStaff = enrollmentType === 'staff';

@@ -4,11 +4,18 @@ import { useCamera } from '@/hooks/useCamera';
 import { PageHeader } from '@/components/PageHeader';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { CameraOverlay } from '@/components/CameraOverlay';
-import { verifyIdentity } from '@/services/apiService';
+import { supabase } from '@/integrations/supabase/client';
 import { Camera, Search, RotateCcw, Check, X, RefreshCw, ArrowLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 type VerificationState = 'capture' | 'processing' | 'match' | 'no-match';
+
+interface VerificationResult {
+  match: boolean;
+  confidence: number;
+  matchedId?: string | null;
+  matchedName?: string | null;
+}
 
 export default function VerifyIdentity() {
   const navigate = useNavigate();
@@ -16,7 +23,7 @@ export default function VerifyIdentity() {
   
   const [state, setState] = useState<VerificationState>('capture');
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
-  const [result, setResult] = useState<{ match: boolean; confidence: number; matchedId?: string } | null>(null);
+  const [result, setResult] = useState<VerificationResult | null>(null);
 
   useEffect(() => {
     startCamera();
@@ -30,13 +37,19 @@ export default function VerifyIdentity() {
     setState('processing');
 
     try {
-      const response = await verifyIdentity(base64);
+      const { data, error: fnError } = await supabase.functions.invoke('verify-identity', {
+        body: { imageBase64: base64 }
+      });
       
-      if (response.success && response.data) {
-        setResult(response.data);
-        setState(response.data.match ? 'match' : 'no-match');
+      if (fnError) {
+        throw new Error(fnError.message || 'Verification failed');
+      }
+      
+      if (data?.success && data?.data) {
+        setResult(data.data);
+        setState(data.data.match ? 'match' : 'no-match');
       } else {
-        throw new Error(response.error || 'Verification failed');
+        throw new Error(data?.error || 'Verification failed');
       }
     } catch (err) {
       console.error('Verification error:', err);
@@ -115,6 +128,14 @@ export default function VerifyIdentity() {
                     
                     {result && (
                       <div className="bg-muted rounded-lg p-4 space-y-2">
+                        {result.matchedName && (
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Name</span>
+                            <span className="font-semibold text-foreground">
+                              {result.matchedName}
+                            </span>
+                          </div>
+                        )}
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Confidence</span>
                           <span className="font-semibold text-foreground">

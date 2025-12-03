@@ -5,14 +5,28 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Shield, Mail, Lock, UserPlus, LogIn, AlertCircle } from 'lucide-react';
+import { Shield, Mail, Lock, UserPlus, LogIn, AlertCircle, User, BadgeCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
-const authSchema = z.object({
+const loginSchema = z.object({
   email: z.string().trim().email({ message: "Please enter a valid email address" }),
   password: z.string().min(6, { message: "Password must be at least 6 characters" }),
 });
+
+const signupSchema = loginSchema.extend({
+  firstName: z.string().trim().min(1, { message: "First name is required" }).max(50),
+  lastName: z.string().trim().min(1, { message: "Last name is required" }).max(50),
+  badgeNumber: z.string().trim().min(1, { message: "Badge number is required" }).max(20),
+});
+
+type FormErrors = {
+  email?: string;
+  password?: string;
+  firstName?: string;
+  lastName?: string;
+  badgeNumber?: string;
+};
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -20,8 +34,11 @@ export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [badgeNumber, setBadgeNumber] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+  const [errors, setErrors] = useState<FormErrors>({});
 
   useEffect(() => {
     if (user && !loading) {
@@ -30,12 +47,17 @@ export default function Auth() {
   }, [user, loading, navigate]);
 
   const validateForm = () => {
-    const result = authSchema.safeParse({ email, password });
+    const schema = isLogin ? loginSchema : signupSchema;
+    const data = isLogin 
+      ? { email, password }
+      : { email, password, firstName, lastName, badgeNumber };
+    
+    const result = schema.safeParse(data);
     if (!result.success) {
-      const fieldErrors: { email?: string; password?: string } = {};
+      const fieldErrors: FormErrors = {};
       result.error.errors.forEach((err) => {
-        if (err.path[0] === 'email') fieldErrors.email = err.message;
-        if (err.path[0] === 'password') fieldErrors.password = err.message;
+        const field = err.path[0] as keyof FormErrors;
+        fieldErrors[field] = err.message;
       });
       setErrors(fieldErrors);
       return false;
@@ -65,7 +87,11 @@ export default function Auth() {
           navigate('/', { replace: true });
         }
       } else {
-        const { error } = await signUp(email, password);
+        const { error } = await signUp(email, password, {
+          first_name: firstName,
+          last_name: lastName,
+          badge_number: badgeNumber,
+        });
         if (error) {
           if (error.message.includes('User already registered')) {
             toast.error('An account with this email already exists');
@@ -120,6 +146,79 @@ export default function Auth() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
+              {!isLogin && (
+                <>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <Label htmlFor="firstName" className="text-sm font-medium">
+                        First Name
+                      </Label>
+                      <div className="relative">
+                        <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                        <Input
+                          id="firstName"
+                          type="text"
+                          placeholder="John"
+                          value={firstName}
+                          onChange={(e) => setFirstName(e.target.value)}
+                          className="pl-10"
+                          disabled={submitting}
+                        />
+                      </div>
+                      {errors.firstName && (
+                        <p className="text-xs text-destructive flex items-center gap-1">
+                          <AlertCircle className="w-3 h-3" />
+                          {errors.firstName}
+                        </p>
+                      )}
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="lastName" className="text-sm font-medium">
+                        Last Name
+                      </Label>
+                      <Input
+                        id="lastName"
+                        type="text"
+                        placeholder="Doe"
+                        value={lastName}
+                        onChange={(e) => setLastName(e.target.value)}
+                        disabled={submitting}
+                      />
+                      {errors.lastName && (
+                        <p className="text-xs text-destructive flex items-center gap-1">
+                          <AlertCircle className="w-3 h-3" />
+                          {errors.lastName}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="badgeNumber" className="text-sm font-medium">
+                      Badge Number
+                    </Label>
+                    <div className="relative">
+                      <BadgeCheck className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        id="badgeNumber"
+                        type="text"
+                        placeholder="OFF-12345"
+                        value={badgeNumber}
+                        onChange={(e) => setBadgeNumber(e.target.value)}
+                        className="pl-10"
+                        disabled={submitting}
+                      />
+                    </div>
+                    {errors.badgeNumber && (
+                      <p className="text-sm text-destructive flex items-center gap-1">
+                        <AlertCircle className="w-3 h-3" />
+                        {errors.badgeNumber}
+                      </p>
+                    )}
+                  </div>
+                </>
+              )}
+
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-sm font-medium">
                   Email

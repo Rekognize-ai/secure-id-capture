@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Users, FileText, BarChart3, Search, Filter, MoreHorizontal, Shield, UserCog } from 'lucide-react';
+import { ArrowLeft, Users, FileText, BarChart3, Search, MoreHorizontal, UserCog } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -9,8 +9,10 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, ResponsiveContainer, LineChart, Line, CartesianGrid, Tooltip } from 'recharts';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { format, subDays, startOfDay } from 'date-fns';
 
 type Enrollment = {
   id: string;
@@ -55,6 +57,9 @@ export default function AdminDashboard() {
     totalUsers: 0,
   });
 
+  // Chart data
+  const [enrollmentTrend, setEnrollmentTrend] = useState<{ date: string; count: number }[]>([]);
+
   useEffect(() => {
     fetchData();
   }, []);
@@ -78,6 +83,21 @@ export default function AdminDashboard() {
       const failed = enrollmentData?.filter(e => e.status === 'failed').length || 0;
       const inmates = enrollmentData?.filter(e => e.type === 'inmate').length || 0;
       const staff = enrollmentData?.filter(e => e.type === 'staff').length || 0;
+
+      // Calculate enrollment trend (last 7 days)
+      const last7Days = Array.from({ length: 7 }, (_, i) => {
+        const date = subDays(new Date(), 6 - i);
+        const dayStart = startOfDay(date);
+        const count = enrollmentData?.filter(e => {
+          const enrollDate = startOfDay(new Date(e.created_at));
+          return enrollDate.getTime() === dayStart.getTime();
+        }).length || 0;
+        return {
+          date: format(date, 'MMM d'),
+          count,
+        };
+      });
+      setEnrollmentTrend(last7Days);
 
       // Fetch users with roles
       const { data: profileData, error: profileError } = await supabase
@@ -233,63 +253,187 @@ export default function AdminDashboard() {
 
           {/* Statistics Tab */}
           <TabsContent value="stats" className="space-y-4 mt-4">
-            <div className="grid grid-cols-2 gap-4">
+            {/* Summary Cards */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               <Card>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">Total Enrollments</CardTitle>
+                  <CardTitle className="text-xs font-medium text-muted-foreground">Total Enrollments</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-3xl font-bold text-foreground">{stats.totalEnrollments}</p>
+                  <p className="text-2xl font-bold text-foreground">{stats.totalEnrollments}</p>
                 </CardContent>
               </Card>
               <Card>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">Total Users</CardTitle>
+                  <CardTitle className="text-xs font-medium text-muted-foreground">Synced</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-3xl font-bold text-foreground">{stats.totalUsers}</p>
+                  <p className="text-2xl font-bold text-success">{stats.uploaded}</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-xs font-medium text-muted-foreground">Pending</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-2xl font-bold text-warning">{stats.pendingSync}</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-xs font-medium text-muted-foreground">Failed</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-2xl font-bold text-destructive">{stats.failed}</p>
                 </CardContent>
               </Card>
             </div>
 
+            {/* Enrollment Trend Chart */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Sync Status</CardTitle>
+                <CardTitle className="text-base">Enrollments (Last 7 Days)</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Synced</span>
-                  <span className="font-semibold text-success">{stats.uploaded}</span>
-                </div>
-                <div className="w-full bg-muted rounded-full h-2">
-                  <div 
-                    className="bg-success h-2 rounded-full transition-all" 
-                    style={{ width: `${stats.totalEnrollments ? (stats.uploaded / stats.totalEnrollments) * 100 : 0}%` }}
-                  />
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Pending</span>
-                  <span className="font-semibold text-warning">{stats.pendingSync}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Failed</span>
-                  <span className="font-semibold text-destructive">{stats.failed}</span>
+              <CardContent>
+                <div className="h-[200px] w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={enrollmentTrend}>
+                      <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                      <XAxis 
+                        dataKey="date" 
+                        tick={{ fontSize: 12 }} 
+                        className="text-muted-foreground"
+                        stroke="hsl(var(--muted-foreground))"
+                      />
+                      <YAxis 
+                        tick={{ fontSize: 12 }} 
+                        className="text-muted-foreground"
+                        stroke="hsl(var(--muted-foreground))"
+                        allowDecimals={false}
+                      />
+                      <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px' }} />
+                      <Line 
+                        type="monotone" 
+                        dataKey="count" 
+                        stroke="hsl(var(--primary))" 
+                        strokeWidth={2}
+                        dot={{ fill: 'hsl(var(--primary))', strokeWidth: 0, r: 4 }}
+                        activeDot={{ r: 6 }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
                 </div>
               </CardContent>
             </Card>
 
+            {/* Charts Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Sync Status Pie Chart */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Sync Status</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-[200px] w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={[
+                            { name: 'Synced', value: stats.uploaded, color: 'hsl(var(--success))' },
+                            { name: 'Pending', value: stats.pendingSync, color: 'hsl(var(--warning))' },
+                            { name: 'Failed', value: stats.failed, color: 'hsl(var(--destructive))' },
+                          ].filter(d => d.value > 0)}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={50}
+                          outerRadius={70}
+                          paddingAngle={2}
+                          dataKey="value"
+                        >
+                          {[
+                            { name: 'Synced', value: stats.uploaded, color: 'hsl(var(--success))' },
+                            { name: 'Pending', value: stats.pendingSync, color: 'hsl(var(--warning))' },
+                            { name: 'Failed', value: stats.failed, color: 'hsl(var(--destructive))' },
+                          ].filter(d => d.value > 0).map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          ))}
+                        </Pie>
+                        <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px' }} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <div className="flex justify-center gap-4 mt-2">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-success" />
+                      <span className="text-xs text-muted-foreground">Synced</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-warning" />
+                      <span className="text-xs text-muted-foreground">Pending</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-destructive" />
+                      <span className="text-xs text-muted-foreground">Failed</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Enrollment Types Bar Chart */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Enrollment Types</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-[200px] w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart 
+                        data={[
+                          { name: 'Inmates', value: stats.inmates },
+                          { name: 'Staff', value: stats.staff },
+                        ]}
+                        layout="vertical"
+                      >
+                        <CartesianGrid strokeDasharray="3 3" className="stroke-muted" horizontal={false} />
+                        <XAxis 
+                          type="number" 
+                          tick={{ fontSize: 12 }}
+                          stroke="hsl(var(--muted-foreground))"
+                          allowDecimals={false}
+                        />
+                        <YAxis 
+                          type="category" 
+                          dataKey="name" 
+                          tick={{ fontSize: 12 }}
+                          stroke="hsl(var(--muted-foreground))"
+                          width={60}
+                        />
+                        <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px' }} />
+                        <Bar 
+                          dataKey="value" 
+                          fill="hsl(var(--primary))" 
+                          radius={[0, 4, 4, 0]}
+                          barSize={30}
+                        />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Users Card */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Enrollment Types</CardTitle>
+                <CardTitle className="text-base">System Users</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Inmates</span>
-                  <span className="font-semibold">{stats.inmates}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Staff</span>
-                  <span className="font-semibold">{stats.staff}</span>
+              <CardContent>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-3xl font-bold text-foreground">{stats.totalUsers}</p>
+                    <p className="text-sm text-muted-foreground">Active officers</p>
+                  </div>
+                  <Users className="h-12 w-12 text-muted-foreground/30" />
                 </div>
               </CardContent>
             </Card>

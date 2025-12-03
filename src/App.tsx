@@ -4,7 +4,9 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { EnrollmentProvider } from "@/context/EnrollmentContext";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 
+import Auth from "./pages/Auth";
 import Home from "./pages/Home";
 import EnrollmentForm from "./pages/EnrollmentForm";
 import FacialCapture from "./pages/FacialCapture";
@@ -25,14 +27,15 @@ const App = () => (
         <Sonner position="top-center" />
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/enrollment-form" element={<EnrollmentForm />} />
-            <Route path="/facial-capture" element={<FacialCapture />} />
-            <Route path="/liveness-check" element={<LivenessCheck />} />
-            <Route path="/enrollment-review" element={<EnrollmentReview />} />
-            <Route path="/enrollment-success" element={<EnrollmentSuccess />} />
-            <Route path="/sync" element={<SyncScreen />} />
-            <Route path="/verify" element={<VerifyIdentity />} />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
+            <Route path="/enrollment-form" element={<ProtectedRoute><EnrollmentForm /></ProtectedRoute>} />
+            <Route path="/facial-capture" element={<ProtectedRoute><FacialCapture /></ProtectedRoute>} />
+            <Route path="/liveness-check" element={<ProtectedRoute><LivenessCheck /></ProtectedRoute>} />
+            <Route path="/enrollment-review" element={<ProtectedRoute><EnrollmentReview /></ProtectedRoute>} />
+            <Route path="/enrollment-success" element={<ProtectedRoute><EnrollmentSuccess /></ProtectedRoute>} />
+            <Route path="/sync" element={<ProtectedRoute><SyncScreen /></ProtectedRoute>} />
+            <Route path="/verify" element={<ProtectedRoute><VerifyIdentity /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

@@ -2,14 +2,18 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import { useEnrollment } from '@/context/EnrollmentContext';
+import { useAuth } from '@/hooks/useAuth';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { StatusBadge } from '@/components/StatusBadge';
-import { UserPlus, ShieldCheck, RefreshCw, Users, Fingerprint } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { UserPlus, ShieldCheck, RefreshCw, Users, Fingerprint, LogOut } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function Home() {
   const navigate = useNavigate();
   const { isOnline } = useNetworkStatus();
   const { pendingEnrollments, setEnrollmentType } = useEnrollment();
+  const { user, signOut } = useAuth();
 
   const pendingCount = pendingEnrollments.filter(
     r => r.status === 'pending' || r.status === 'failed'
@@ -25,6 +29,15 @@ export default function Home() {
     navigate('/enrollment-form');
   };
 
+  const handleSignOut = async () => {
+    const { error } = await signOut();
+    if (error) {
+      toast.error('Failed to sign out');
+    } else {
+      navigate('/auth', { replace: true });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background flex flex-col safe-top safe-bottom">
       {/* Header */}
@@ -34,13 +47,23 @@ export default function Home() {
             variant={isOnline ? 'online' : 'offline'} 
             size="md"
           />
-          {pendingCount > 0 && (
-            <StatusBadge 
-              variant="pending" 
-              label={`${pendingCount} pending`}
-              size="md"
-            />
-          )}
+          <div className="flex items-center gap-2">
+            {pendingCount > 0 && (
+              <StatusBadge 
+                variant="pending" 
+                label={`${pendingCount} pending`}
+                size="md"
+              />
+            )}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleSignOut}
+              className="text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/10"
+            >
+              <LogOut size={20} />
+            </Button>
+          </div>
         </div>
         
         <div className="flex items-center gap-4">

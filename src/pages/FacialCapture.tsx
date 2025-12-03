@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useEnrollment } from '@/context/EnrollmentContext';
 import { useCamera } from '@/hooks/useCamera';
+import { useFaceDetection } from '@/hooks/useFaceDetection';
 import { PageHeader } from '@/components/PageHeader';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { CameraOverlay } from '@/components/CameraOverlay';
@@ -16,8 +17,11 @@ const captureSteps: { view: CaptureView; label: string }[] = [
   { view: 'right', label: 'Right Profile' },
 ];
 
-// Simulate image quality assessment
-function assessImageQuality(): ImageQuality {
+// Simulate image quality assessment - boost quality if face was well positioned
+function assessImageQuality(wasWellPositioned: boolean): ImageQuality {
+  if (wasWellPositioned) {
+    return Math.random() > 0.1 ? 'good' : 'fair';
+  }
   const random = Math.random();
   if (random > 0.3) return 'good';
   if (random > 0.1) return 'fair';
@@ -37,6 +41,15 @@ export default function FacialCapture() {
   });
   const [isCapturing, setIsCapturing] = useState(false);
 
+  const currentView = captureSteps[currentStep].view;
+  const currentCapture = capturedImages[currentView];
+
+  // Face detection - only enabled when camera is ready and no capture for current view
+  const { facePosition, isSupported: isFaceDetectionSupported } = useFaceDetection({
+    videoRef,
+    enabled: isReady && !currentCapture,
+  });
+
   // Redirect if no enrollment in progress
   useEffect(() => {
     if (!currentEnrollment) {
@@ -49,9 +62,7 @@ export default function FacialCapture() {
     startCamera();
   }, []);
 
-  const currentView = captureSteps[currentStep].view;
   const allCaptured = Object.values(capturedImages).every(img => img !== null);
-  const allGoodQuality = Object.values(capturedImages).every(img => img?.quality === 'good' || img?.quality === 'fair');
 
   const handleCapture = async () => {
     setIsCapturing(true);
@@ -61,7 +72,7 @@ export default function FacialCapture() {
     
     const base64 = captureImage();
     if (base64) {
-      const quality = assessImageQuality();
+      const quality = assessImageQuality(facePosition.isWellPositioned);
       
       setCapturedImages(prev => ({
         ...prev,
@@ -94,8 +105,6 @@ export default function FacialCapture() {
   const handleProceed = () => {
     navigate('/liveness-check');
   };
-
-  const currentCapture = capturedImages[currentView];
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -170,7 +179,12 @@ export default function FacialCapture() {
               )}
 
               {isReady && (
-                <CameraOverlay currentView={currentView} isCapturing={isCapturing} />
+                <CameraOverlay 
+                  currentView={currentView} 
+                  isCapturing={isCapturing}
+                  faceStatus={facePosition}
+                  isDetectionSupported={isFaceDetectionSupported}
+                />
               )}
             </>
           )}

@@ -43,7 +43,6 @@ function dbToAppRecord(db: DbEnrollment): EnrollmentRecord {
 // Convert app record to database insert
 function appToDbRecord(record: EnrollmentRecord): DbEnrollmentInsert {
   return {
-    id: record.id,
     local_id: record.localId,
     type: record.type,
     first_name: record.form.firstName,
@@ -89,7 +88,7 @@ export async function saveEnrollmentRecord(record: EnrollmentRecord): Promise<vo
   
   const { error } = await supabase
     .from('enrollments')
-    .upsert(dbRecord, { onConflict: 'id' });
+    .upsert(dbRecord, { onConflict: 'local_id' });
 
   if (error) {
     console.error('Error saving enrollment record:', error);

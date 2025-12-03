@@ -14,7 +14,90 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      enrollments: {
+        Row: {
+          admission_date: string | null
+          cell_number: string | null
+          created_at: string | null
+          date_of_birth: string | null
+          department: string | null
+          employee_id: string | null
+          error_message: string | null
+          first_name: string
+          gender: Database["public"]["Enums"]["gender_type"] | null
+          id: string
+          image_front: string | null
+          image_left: string | null
+          image_right: string | null
+          last_name: string
+          liveness_verified: boolean | null
+          local_id: string
+          position: string | null
+          prison_block: string | null
+          quality_front: Database["public"]["Enums"]["image_quality"] | null
+          quality_left: Database["public"]["Enums"]["image_quality"] | null
+          quality_right: Database["public"]["Enums"]["image_quality"] | null
+          status: Database["public"]["Enums"]["sync_status"] | null
+          synced_at: string | null
+          type: Database["public"]["Enums"]["enrollment_type"]
+          updated_at: string | null
+        }
+        Insert: {
+          admission_date?: string | null
+          cell_number?: string | null
+          created_at?: string | null
+          date_of_birth?: string | null
+          department?: string | null
+          employee_id?: string | null
+          error_message?: string | null
+          first_name: string
+          gender?: Database["public"]["Enums"]["gender_type"] | null
+          id?: string
+          image_front?: string | null
+          image_left?: string | null
+          image_right?: string | null
+          last_name: string
+          liveness_verified?: boolean | null
+          local_id: string
+          position?: string | null
+          prison_block?: string | null
+          quality_front?: Database["public"]["Enums"]["image_quality"] | null
+          quality_left?: Database["public"]["Enums"]["image_quality"] | null
+          quality_right?: Database["public"]["Enums"]["image_quality"] | null
+          status?: Database["public"]["Enums"]["sync_status"] | null
+          synced_at?: string | null
+          type: Database["public"]["Enums"]["enrollment_type"]
+          updated_at?: string | null
+        }
+        Update: {
+          admission_date?: string | null
+          cell_number?: string | null
+          created_at?: string | null
+          date_of_birth?: string | null
+          department?: string | null
+          employee_id?: string | null
+          error_message?: string | null
+          first_name?: string
+          gender?: Database["public"]["Enums"]["gender_type"] | null
+          id?: string
+          image_front?: string | null
+          image_left?: string | null
+          image_right?: string | null
+          last_name?: string
+          liveness_verified?: boolean | null
+          local_id?: string
+          position?: string | null
+          prison_block?: string | null
+          quality_front?: Database["public"]["Enums"]["image_quality"] | null
+          quality_left?: Database["public"]["Enums"]["image_quality"] | null
+          quality_right?: Database["public"]["Enums"]["image_quality"] | null
+          status?: Database["public"]["Enums"]["sync_status"] | null
+          synced_at?: string | null
+          type?: Database["public"]["Enums"]["enrollment_type"]
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +106,10 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      enrollment_type: "inmate" | "staff"
+      gender_type: "male" | "female" | "other"
+      image_quality: "good" | "fair" | "poor" | "pending"
+      sync_status: "pending" | "uploading" | "uploaded" | "failed"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +236,11 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      enrollment_type: ["inmate", "staff"],
+      gender_type: ["male", "female", "other"],
+      image_quality: ["good", "fair", "poor", "pending"],
+      sync_status: ["pending", "uploading", "uploaded", "failed"],
+    },
   },
 } as const

@@ -7,8 +7,10 @@ import {
   EnrollmentContextType 
 } from '@/types/enrollment';
 import { 
-  saveEnrollmentRecord, 
-  getEnrollmentRecords, 
+  saveEnrollmentRecord as saveToDb, 
+  getEnrollmentRecords as getFromDb,
+} from '@/services/databaseService';
+import { 
   generateLocalId,
   saveDraft,
   getDraft,
@@ -34,6 +36,7 @@ export function EnrollmentProvider({ children }: { children: React.ReactNode }) 
   const [enrollmentType, setEnrollmentType] = useState<EnrollmentType | null>(null);
   const [currentEnrollment, setCurrentEnrollment] = useState<Partial<EnrollmentRecord> | null>(null);
   const [pendingEnrollments, setPendingEnrollments] = useState<EnrollmentRecord[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Load pending enrollments on mount
   useEffect(() => {
@@ -56,9 +59,16 @@ export function EnrollmentProvider({ children }: { children: React.ReactNode }) 
     }
   }, [currentEnrollment, enrollmentType]);
 
-  const refreshPendingEnrollments = useCallback(() => {
-    const records = getEnrollmentRecords();
-    setPendingEnrollments(records);
+  const refreshPendingEnrollments = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const records = await getFromDb();
+      setPendingEnrollments(records);
+    } catch (error) {
+      console.error('Error refreshing enrollments:', error);
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
   const handleSetEnrollmentType = useCallback((type: EnrollmentType) => {
@@ -127,9 +137,9 @@ export function EnrollmentProvider({ children }: { children: React.ReactNode }) 
       localId: currentEnrollment.localId || generateLocalId(),
     };
 
-    saveEnrollmentRecord(record);
+    await saveToDb(record);
     clearDraft();
-    refreshPendingEnrollments();
+    await refreshPendingEnrollments();
     
     return record.localId;
   }, [currentEnrollment, enrollmentType, refreshPendingEnrollments]);

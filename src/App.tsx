@@ -8,6 +8,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 
 import Auth from "./pages/Auth";
 import Home from "./pages/Home";
+import Profile from "./pages/Profile";
 import EnrollmentForm from "./pages/EnrollmentForm";
 import FacialCapture from "./pages/FacialCapture";
 import LivenessCheck from "./pages/LivenessCheck";
@@ -29,6 +30,7 @@ const App = () => (
           <Routes>
             <Route path="/auth" element={<Auth />} />
             <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
+            <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="/enrollment-form" element={<ProtectedRoute><EnrollmentForm /></ProtectedRoute>} />
             <Route path="/facial-capture" element={<ProtectedRoute><FacialCapture /></ProtectedRoute>} />
             <Route path="/liveness-check" element={<ProtectedRoute><LivenessCheck /></ProtectedRoute>} />

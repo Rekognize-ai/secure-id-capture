@@ -6,7 +6,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { StatusBadge } from '@/components/StatusBadge';
 import { Button } from '@/components/ui/button';
-import { UserPlus, ShieldCheck, RefreshCw, Users, Fingerprint, LogOut } from 'lucide-react';
+import { UserPlus, ShieldCheck, RefreshCw, Users, Fingerprint, LogOut, UserCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function Home() {
@@ -55,6 +55,14 @@ export default function Home() {
                 size="md"
               />
             )}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate('/profile')}
+              className="text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/10"
+            >
+              <UserCircle size={20} />
+            </Button>
             <Button
               variant="ghost"
               size="icon"

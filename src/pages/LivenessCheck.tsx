@@ -73,9 +73,9 @@ export default function LivenessCheck() {
     if (!isReady || !!error) return;
     if (!isSupported) return;
 
-    const LOOK_STRAIGHT_MS = 1800;
-    const TURN_LEFT_THRESHOLD = 0.35;
-    const TURN_RIGHT_THRESHOLD = 0.65;
+    const LOOK_STRAIGHT_MS = 3000; // 3 seconds of steady face
+    const TURN_LEFT_THRESHOLD = 0.25; // Must move further left
+    const TURN_RIGHT_THRESHOLD = 0.75; // Must move further right
 
     const id = window.setInterval(() => {
       const step = stepRef.current;

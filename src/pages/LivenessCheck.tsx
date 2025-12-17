@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useEnrollment } from '@/context/EnrollmentContext';
 import { useCamera } from '@/hooks/useCamera';
+import { useFaceDetection } from '@/hooks/useFaceDetection';
 import { PageHeader } from '@/components/PageHeader';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { Eye, MoveHorizontal, Check, RefreshCw, ArrowRight, Loader2 } from 'lucide-react';
@@ -31,10 +32,29 @@ export default function LivenessCheck() {
   const navigate = useNavigate();
   const { currentEnrollment, setLivenessVerified } = useEnrollment();
   const { videoRef, isReady, startCamera, error } = useCamera();
-  
+
   const [currentStep, setCurrentStep] = useState<LivenessStep>('blink');
   const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
+
+  const { facePosition, isSupported } = useFaceDetection({
+    videoRef,
+    enabled: isReady && !error && currentStep !== 'complete',
+  });
+
+  const faceRef = useRef(facePosition);
+  useEffect(() => {
+    faceRef.current = facePosition;
+  }, [facePosition]);
+
+  const stepRef = useRef<LivenessStep>(currentStep);
+  useEffect(() => {
+    stepRef.current = currentStep;
+  }, [currentStep]);
+
+  const progressRef = useRef(0);
+  const lookStartRef = useRef<number | null>(null);
+  const turnSeenRef = useRef<{ left: boolean; right: boolean }>({ left: false, right: false });
 
   // Redirect if no enrollment in progress
   useEffect(() => {
@@ -46,51 +66,116 @@ export default function LivenessCheck() {
   // Start camera on mount
   useEffect(() => {
     startCamera();
-  }, []);
+  }, [startCamera]);
 
-  // Simulate liveness detection progress
-  const simulateLivenessDetection = useCallback(async () => {
-    setIsProcessing(true);
-    setProgress(0);
-
-    // Simulate progress
-    for (let i = 0; i <= 100; i += 5) {
-      await new Promise(resolve => setTimeout(resolve, 100));
-      setProgress(i);
-    }
-
-    // Move to next step
-    if (currentStep === 'blink') {
-      setCurrentStep('turn');
-      setProgress(0);
-      setIsProcessing(false);
-    } else if (currentStep === 'turn') {
-      setCurrentStep('complete');
-      setLivenessVerified(true);
-      setIsProcessing(false);
-    }
-  }, [currentStep, setLivenessVerified]);
-
-  // Auto-start detection when camera is ready
+  // Liveness engine (basic): require a stable forward-facing face, then left+right movement
   useEffect(() => {
-    if (isReady && currentStep !== 'complete' && !isProcessing) {
-      const timer = setTimeout(() => {
-        simulateLivenessDetection();
-      }, 2000);
-      return () => clearTimeout(timer);
-    }
-  }, [isReady, currentStep, isProcessing, simulateLivenessDetection]);
+    if (!isReady || !!error) return;
+    if (!isSupported) return;
+
+    const LOOK_STRAIGHT_MS = 1800;
+    const TURN_LEFT_THRESHOLD = 0.35;
+    const TURN_RIGHT_THRESHOLD = 0.65;
+
+    const id = window.setInterval(() => {
+      const step = stepRef.current;
+      if (step === 'complete') return;
+
+      const fp = faceRef.current;
+
+      const setProgressIfChanged = (next: number) => {
+        const clamped = Math.max(0, Math.min(100, next));
+        if (Math.abs(clamped - progressRef.current) >= 1) {
+          progressRef.current = clamped;
+          setProgress(clamped);
+        }
+      };
+
+      if (step === 'blink') {
+        const isFacingLikely =
+          !!fp.boundingBox &&
+          fp.boundingBox.width / Math.max(1e-6, fp.boundingBox.height) > 0.55;
+
+        if (!fp.isWellPositioned || !isFacingLikely) {
+          lookStartRef.current = null;
+          setIsProcessing(false);
+          setProgressIfChanged(0);
+          return;
+        }
+
+        setIsProcessing(true);
+
+        if (lookStartRef.current === null) {
+          lookStartRef.current = Date.now();
+        }
+
+        const elapsed = Date.now() - lookStartRef.current;
+        setProgressIfChanged((elapsed / LOOK_STRAIGHT_MS) * 100);
+
+        if (progressRef.current >= 100) {
+          lookStartRef.current = null;
+          turnSeenRef.current = { left: false, right: false };
+          setIsProcessing(false);
+          setProgress(0);
+          progressRef.current = 0;
+          setCurrentStep('turn');
+        }
+        return;
+      }
+
+      if (step === 'turn') {
+        if (!fp.isDetected || !fp.boundingBox) {
+          setIsProcessing(false);
+          setProgressIfChanged(0);
+          turnSeenRef.current = { left: false, right: false };
+          return;
+        }
+
+        setIsProcessing(true);
+
+        const centerX = fp.boundingBox.x + fp.boundingBox.width / 2;
+        if (centerX < TURN_LEFT_THRESHOLD) {
+          turnSeenRef.current.left = true;
+        }
+        if (centerX > TURN_RIGHT_THRESHOLD) {
+          turnSeenRef.current.right = true;
+        }
+
+        const nextProgress =
+          ((turnSeenRef.current.left ? 1 : 0) + (turnSeenRef.current.right ? 1 : 0)) * 50;
+
+        setProgressIfChanged(nextProgress);
+
+        if (nextProgress >= 100) {
+          setIsProcessing(false);
+          setCurrentStep('complete');
+          setLivenessVerified(true);
+        }
+      }
+    }, 120);
+
+    return () => window.clearInterval(id);
+  }, [isReady, error, isSupported, setLivenessVerified]);
 
   const handleContinue = () => {
     navigate('/enrollment-review');
   };
 
   const handleRetry = () => {
+    lookStartRef.current = null;
+    turnSeenRef.current = { left: false, right: false };
+    progressRef.current = 0;
+
+    setIsProcessing(false);
     setCurrentStep('blink');
     setProgress(0);
   };
 
   const Icon = instructions[currentStep].icon;
+
+  const isFacingLikely =
+    !!facePosition.boundingBox &&
+    facePosition.boundingBox.width / Math.max(1e-6, facePosition.boundingBox.height) > 0.55;
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -160,6 +245,20 @@ export default function LivenessCheck() {
                   <p className="text-muted-foreground">
                     {instructions[currentStep].subtext}
                   </p>
+
+                  {currentStep !== 'complete' && (
+                    <p className="mt-3 text-sm text-muted-foreground">
+                      {!isSupported
+                        ? 'Liveness checks are not supported on this device/browser.'
+                        : !facePosition.isDetected
+                          ? 'No face detected — look directly at the camera.'
+                          : currentStep === 'blink' && (!facePosition.isWellPositioned || !isFacingLikely)
+                            ? 'Look straight at the camera and center your face in the oval.'
+                            : currentStep === 'turn' && progress < 100
+                              ? 'Turn left, then right until the bar completes.'
+                              : 'Hold still…'}
+                    </p>
+                  )}
 
                   {/* Progress bar */}
                   {isProcessing && currentStep !== 'complete' && (

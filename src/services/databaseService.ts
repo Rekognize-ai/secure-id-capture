@@ -84,7 +84,16 @@ export async function getEnrollmentRecords(): Promise<EnrollmentRecord[]> {
 
 // Save an enrollment record
 export async function saveEnrollmentRecord(record: EnrollmentRecord): Promise<void> {
-  const dbRecord = appToDbRecord(record);
+  // Get current user for RLS compliance
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    throw new Error('User must be authenticated to save enrollment records');
+  }
+
+  const dbRecord = {
+    ...appToDbRecord(record),
+    created_by: user.id,
+  };
   
   const { error } = await supabase
     .from('enrollments')

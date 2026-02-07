@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
+import { logger } from '@/lib/logger';
 
 type AppRole = 'admin' | 'officer' | 'supervisor';
 
@@ -24,7 +25,7 @@ export function useUserRole() {
         .maybeSingle();
 
       if (error) {
-        console.error('Error fetching role:', error);
+        logger.error('Error fetching role', error);
         setRole(null);
       } else {
         setRole(data?.role ?? 'officer');

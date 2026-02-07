@@ -1,6 +1,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { EnrollmentRecord, SyncStatus, EnrollmentType, Gender, ImageQuality } from '@/types/enrollment';
 import { Tables, TablesInsert } from '@/integrations/supabase/types';
+import { logger } from '@/lib/logger';
 
 type DbEnrollment = Tables<'enrollments'>;
 type DbEnrollmentInsert = TablesInsert<'enrollments'>;
@@ -75,7 +76,7 @@ export async function getEnrollmentRecords(): Promise<EnrollmentRecord[]> {
     .order('created_at', { ascending: false });
 
   if (error) {
-    console.error('Error fetching enrollment records:', error);
+    logger.error('Error fetching enrollment records', error);
     return [];
   }
 
@@ -100,7 +101,7 @@ export async function saveEnrollmentRecord(record: EnrollmentRecord): Promise<vo
     .upsert(dbRecord, { onConflict: 'local_id' });
 
   if (error) {
-    console.error('Error saving enrollment record:', error);
+    logger.error('Error saving enrollment record', error);
     throw new Error('Failed to save enrollment record');
   }
 }
@@ -122,7 +123,7 @@ export async function updateRecordStatus(id: string, status: SyncStatus, errorMs
     .eq('id', id);
 
   if (error) {
-    console.error('Error updating record status:', error);
+    logger.error('Error updating record status', error);
   }
 }
 
@@ -134,7 +135,7 @@ export async function getPendingCount(): Promise<number> {
     .in('status', ['pending', 'failed']);
 
   if (error) {
-    console.error('Error getting pending count:', error);
+    logger.error('Error getting pending count', error);
     return 0;
   }
 
@@ -150,7 +151,7 @@ export async function getRecordsByStatus(status: SyncStatus): Promise<Enrollment
     .order('created_at', { ascending: false });
 
   if (error) {
-    console.error('Error fetching records by status:', error);
+    logger.error('Error fetching records by status', error);
     return [];
   }
 
@@ -165,7 +166,7 @@ export async function deleteRecord(id: string): Promise<void> {
     .eq('id', id);
 
   if (error) {
-    console.error('Error deleting record:', error);
+    logger.error('Error deleting record', error);
   }
 }
 
@@ -181,6 +182,6 @@ export async function clearRecordImages(id: string): Promise<void> {
     .eq('id', id);
 
   if (error) {
-    console.error('Error clearing record images:', error);
+    logger.error('Error clearing record images', error);
   }
 }

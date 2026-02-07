@@ -9,6 +9,7 @@ import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { EnrollmentFormData } from '@/types/enrollment';
+import { logger } from '@/lib/logger';
 
 export default function EnrollmentReview() {
   const navigate = useNavigate();
@@ -36,7 +37,7 @@ export default function EnrollmentReview() {
       navigate('/enrollment-success', { state: { localId } });
     } catch (error) {
       toast.error('Failed to save enrollment. Please try again.');
-      console.error('Submit error:', error);
+      logger.error('Enrollment submission failed', error);
     } finally {
       setIsSubmitting(false);
     }

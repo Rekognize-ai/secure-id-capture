@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
+import { logger } from '@/lib/logger';
 
 interface UseCameraOptions {
   facingMode?: 'user' | 'environment';
@@ -78,7 +79,7 @@ export function useCamera(options: UseCameraOptions = {}): UseCameraReturn {
         setError(`Camera error: ${errorMessage}`);
       }
       
-      console.error('Camera error:', err);
+      logger.error('Camera initialization failed', err);
     } finally {
       setIsLoading(false);
     }

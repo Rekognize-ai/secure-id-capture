@@ -13,6 +13,7 @@ import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, ResponsiveContainer, 
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { format, subDays, startOfDay } from 'date-fns';
+import { logger } from '@/lib/logger';
 
 type Enrollment = {
   id: string;
@@ -131,7 +132,7 @@ export default function AdminDashboard() {
         totalUsers: profileData?.length || 0,
       });
     } catch (error) {
-      console.error('Error fetching data:', error);
+      logger.error('Failed to load dashboard data', error);
       toast.error('Failed to load dashboard data');
     } finally {
       setLoading(false);
@@ -150,7 +151,7 @@ export default function AdminDashboard() {
       toast.success('Role updated successfully');
       fetchData();
     } catch (error) {
-      console.error('Error updating role:', error);
+      logger.error('Failed to update role', error);
       toast.error('Failed to update role');
     }
   }
@@ -167,7 +168,7 @@ export default function AdminDashboard() {
       toast.success('Enrollment deleted');
       fetchData();
     } catch (error) {
-      console.error('Error deleting enrollment:', error);
+      logger.error('Failed to delete enrollment', error);
       toast.error('Failed to delete enrollment');
     }
   }

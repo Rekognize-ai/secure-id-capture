@@ -1,4 +1,5 @@
 import { EnrollmentRecord, SyncStatus } from '@/types/enrollment';
+import { logger } from '@/lib/logger';
 
 const STORAGE_KEY = 'prison_enrollment_records';
 const FORM_DRAFT_KEY = 'prison_enrollment_draft';
@@ -16,7 +17,7 @@ export function getEnrollmentRecords(): EnrollmentRecord[] {
     const data = localStorage.getItem(STORAGE_KEY);
     return data ? JSON.parse(data) : [];
   } catch (error) {
-    console.error('Error reading enrollment records:', error);
+    logger.error('Error reading enrollment records', error);
     return [];
   }
 }
@@ -35,7 +36,7 @@ export function saveEnrollmentRecord(record: EnrollmentRecord): void {
     
     localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
   } catch (error) {
-    console.error('Error saving enrollment record:', error);
+    logger.error('Error saving enrollment record', error);
     throw new Error('Failed to save enrollment record');
   }
 }
@@ -51,8 +52,8 @@ export function updateRecordStatus(id: string, status: SyncStatus, error?: strin
       if (error) record.error = error;
       localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
     }
-  } catch (error) {
-    console.error('Error updating record status:', error);
+  } catch (err) {
+    logger.error('Error updating record status', err);
   }
 }
 
@@ -74,7 +75,7 @@ export function deleteRecord(id: string): void {
     const filtered = records.filter(r => r.id !== id);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
   } catch (error) {
-    console.error('Error deleting record:', error);
+    logger.error('Error deleting record', error);
   }
 }
 
@@ -89,7 +90,7 @@ export function clearRecordImages(id: string): void {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
     }
   } catch (error) {
-    console.error('Error clearing record images:', error);
+    logger.error('Error clearing record images', error);
   }
 }
 
@@ -98,7 +99,7 @@ export function saveDraft(data: any): void {
   try {
     localStorage.setItem(FORM_DRAFT_KEY, JSON.stringify(data));
   } catch (error) {
-    console.error('Error saving draft:', error);
+    logger.error('Error saving draft', error);
   }
 }
 
@@ -107,7 +108,7 @@ export function getDraft(): any | null {
     const data = localStorage.getItem(FORM_DRAFT_KEY);
     return data ? JSON.parse(data) : null;
   } catch (error) {
-    console.error('Error reading draft:', error);
+    logger.error('Error reading draft', error);
     return null;
   }
 }

@@ -7,6 +7,7 @@ import { CameraOverlay } from '@/components/CameraOverlay';
 import { supabase } from '@/integrations/supabase/client';
 import { Camera, Search, RotateCcw, Check, X, RefreshCw, ArrowLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { logger } from '@/lib/logger';
 
 type VerificationState = 'capture' | 'processing' | 'match' | 'no-match';
 
@@ -52,7 +53,7 @@ export default function VerifyIdentity() {
         throw new Error(data?.error || 'Verification failed');
       }
     } catch (err) {
-      console.error('Verification error:', err);
+      logger.error('Verification failed', err);
       setState('no-match');
       setResult({ match: false, confidence: 0 });
     }

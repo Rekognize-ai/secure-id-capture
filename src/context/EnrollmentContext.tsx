@@ -16,6 +16,7 @@ import {
   getDraft,
   clearDraft 
 } from '@/services/storageService';
+import { logger } from '@/lib/logger';
 
 const EnrollmentContext = createContext<EnrollmentContextType | undefined>(undefined);
 
@@ -65,7 +66,7 @@ export function EnrollmentProvider({ children }: { children: React.ReactNode }) 
       const records = await getFromDb();
       setPendingEnrollments(records);
     } catch (error) {
-      console.error('Error refreshing enrollments:', error);
+      logger.error('Error refreshing enrollments', error);
     } finally {
       setIsLoading(false);
     }

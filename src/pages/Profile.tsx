@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { ArrowLeft, User, BadgeCheck, Building2, Save, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
 
 const profileSchema = z.object({
   firstName: z.string().trim().min(1, { message: "First name is required" }).max(50),
@@ -76,7 +77,7 @@ export default function Profile() {
           setRole(roleData.role);
         }
       } catch (error) {
-        console.error('Error fetching profile:', error);
+        logger.error('Failed to load profile', error);
         toast.error('Failed to load profile');
       } finally {
         setLoading(false);
@@ -126,7 +127,7 @@ export default function Profile() {
 
       toast.success('Profile updated successfully');
     } catch (error) {
-      console.error('Error updating profile:', error);
+      logger.error('Failed to update profile', error);
       toast.error('Failed to update profile');
     } finally {
       setSaving(false);

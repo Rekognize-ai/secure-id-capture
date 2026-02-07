@@ -10,6 +10,8 @@ import { syncRecords } from '@/services/apiService';
 import { updateRecordStatus, clearRecordImages, deleteRecord } from '@/services/databaseService';
 import { RefreshCw, CloudOff, Cloud, CheckCircle, Wifi, WifiOff } from 'lucide-react';
 import { toast } from 'sonner';
+import { logger } from '@/lib/logger';
+import { clearRecordImages as clearLocalImages } from '@/services/storageService';
 
 export default function SyncScreen() {
   const navigate = useNavigate();
@@ -63,8 +65,9 @@ export default function SyncScreen() {
       await Promise.all([
         ...synced.map(async (id) => {
           await updateRecordStatus(id, 'uploaded');
-          // Security: Clear images after successful sync
+          // Security: Clear images after successful sync from both DB and localStorage
           await clearRecordImages(id);
+          clearLocalImages(id);
         }),
         ...failed.map(({ id, error }) => 
           updateRecordStatus(id, 'failed', error)
@@ -81,7 +84,7 @@ export default function SyncScreen() {
       }
     } catch (error) {
       toast.error('Sync failed. Please try again.');
-      console.error('Sync error:', error);
+      logger.error('Sync failed', error);
     } finally {
       setIsSyncing(false);
       setSyncProgress(0);
@@ -100,6 +103,7 @@ export default function SyncScreen() {
     if (synced.length > 0) {
       await updateRecordStatus(id, 'uploaded');
       await clearRecordImages(id);
+      clearLocalImages(id);
       toast.success('Record synced successfully');
     } else {
       await updateRecordStatus(id, 'failed', failed[0]?.error);

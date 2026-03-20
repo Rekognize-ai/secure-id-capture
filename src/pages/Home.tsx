@@ -8,7 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { StatusBadge } from '@/components/StatusBadge';
 import { Button } from '@/components/ui/button';
-import { UserPlus, ShieldCheck, RefreshCw, Users, Fingerprint, LogOut, UserCircle, Settings } from 'lucide-react';
+import { UserPlus, ShieldCheck, RefreshCw, Fingerprint, LogOut, UserCircle, Settings } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function Home() {
@@ -44,10 +44,6 @@ export default function Home() {
     navigate('/enrollment-form');
   };
 
-  const handleEnrollStaff = () => {
-    setEnrollmentType('staff');
-    navigate('/enrollment-form');
-  };
 
   const handleSignOut = async () => {
     const { error } = await signOut();
@@ -132,16 +128,6 @@ export default function Home() {
             onClick={handleEnrollInmate}
           >
             Enroll Inmate
-          </PrimaryButton>
-
-          <PrimaryButton
-            variant="outline"
-            size="xl"
-            fullWidth
-            icon={<Users size={24} />}
-            onClick={handleEnrollStaff}
-          >
-            Enroll Staff
           </PrimaryButton>
 
           <div className="pt-4 border-t border-border mt-6">

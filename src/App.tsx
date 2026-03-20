@@ -35,7 +35,7 @@ const App = () => (
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="/enrollment-form" element={<ProtectedRoute><EnrollmentForm /></ProtectedRoute>} />
             <Route path="/facial-capture" element={<ProtectedRoute><FacialCapture /></ProtectedRoute>} />
-            <Route path="/liveness-check" element={<ProtectedRoute><LivenessCheck /></ProtectedRoute>} />
+            
             <Route path="/enrollment-review" element={<ProtectedRoute><EnrollmentReview /></ProtectedRoute>} />
             <Route path="/enrollment-success" element={<ProtectedRoute><EnrollmentSuccess /></ProtectedRoute>} />
             <Route path="/sync" element={<ProtectedRoute><SyncScreen /></ProtectedRoute>} />

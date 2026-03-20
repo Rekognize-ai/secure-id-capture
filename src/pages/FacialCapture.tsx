@@ -195,7 +195,7 @@ export default function FacialCapture() {
     <div className="min-h-screen bg-background flex flex-col">
       <PageHeader 
         title="Facial Capture"
-        subtitle={`Step ${currentStep + 1} of ${captureSteps.length}`}
+        subtitle={`Step ${currentStep + 1} of ${captureSteps.length} — ${captureSteps[currentStep].label}`}
         rightElement={
           <button
             onClick={switchCamera}

@@ -188,7 +188,7 @@ export default function FacialCapture() {
   };
 
   const handleProceed = () => {
-    navigate('/liveness-check');
+    navigate('/enrollment-review');
   };
 
   return (

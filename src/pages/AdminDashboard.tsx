@@ -617,10 +617,10 @@ export default function AdminDashboard() {
                                 Set as Officer
                               </DropdownMenuItem>
                               <DropdownMenuItem onClick={() => updateUserRole(user.user_id, 'supervisor')}>
-                                Set as Supervisor
+                                Set as Facility Admin
                               </DropdownMenuItem>
                               <DropdownMenuItem onClick={() => updateUserRole(user.user_id, 'admin')}>
-                                Set as Admin
+                                Set as Super Admin
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>

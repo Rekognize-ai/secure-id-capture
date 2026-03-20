@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Users, FileText, BarChart3, Search, MoreHorizontal, UserCog } from 'lucide-react';
+import { ArrowLeft, Users, FileText, BarChart3, Search, MoreHorizontal, UserCog, Fingerprint } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -56,6 +56,7 @@ export default function AdminDashboard() {
     inmates: 0,
     staff: 0,
     totalUsers: 0,
+    dailyEvents: 0,
   });
 
   // Chart data
@@ -122,6 +123,12 @@ export default function AdminDashboard() {
 
       setUsers(usersWithRoles);
 
+      // Calculate daily events (enrollments created today)
+      const todayStart = startOfDay(new Date());
+      const dailyEvents = enrollmentData?.filter(e => {
+        return new Date(e.created_at) >= todayStart;
+      }).length || 0;
+
       setStats({
         totalEnrollments: total,
         pendingSync: pending,
@@ -130,6 +137,7 @@ export default function AdminDashboard() {
         inmates,
         staff,
         totalUsers: profileData?.length || 0,
+        dailyEvents,
       });
     } catch (error) {
       logger.error('Failed to load dashboard data', error);
@@ -207,9 +215,9 @@ export default function AdminDashboard() {
   const getRoleBadge = (role: string) => {
     switch (role) {
       case 'admin':
-        return <Badge className="bg-primary text-primary-foreground">Admin</Badge>;
+        return <Badge className="bg-primary text-primary-foreground">Super Admin</Badge>;
       case 'supervisor':
-        return <Badge className="bg-accent text-accent-foreground">Supervisor</Badge>;
+        return <Badge className="bg-accent text-accent-foreground">Facility Admin</Badge>;
       default:
         return <Badge variant="secondary">Officer</Badge>;
     }
@@ -254,6 +262,34 @@ export default function AdminDashboard() {
 
           {/* Statistics Tab */}
           <TabsContent value="stats" className="space-y-4 mt-4">
+            {/* HQ Headline Metrics */}
+            <div className="grid grid-cols-2 gap-4">
+              <Card className="border-primary/30 bg-primary/5">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-xs font-semibold text-primary uppercase tracking-wider flex items-center gap-1.5">
+                    <Users className="h-3.5 w-3.5" />
+                    Total Enrolled Inmates
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-3xl font-bold text-foreground tabular-nums">{stats.inmates}</p>
+                  <p className="text-xs text-muted-foreground mt-1">Across all facilities</p>
+                </CardContent>
+              </Card>
+              <Card className="border-info/30 bg-info/5">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-xs font-semibold text-info uppercase tracking-wider flex items-center gap-1.5">
+                    <Fingerprint className="h-3.5 w-3.5" />
+                    Today's Events
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-3xl font-bold text-foreground tabular-nums">{stats.dailyEvents}</p>
+                  <p className="text-xs text-muted-foreground mt-1">Enrollments today</p>
+                </CardContent>
+              </Card>
+            </div>
+
             {/* Summary Cards */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               <Card>
@@ -261,7 +297,7 @@ export default function AdminDashboard() {
                   <CardTitle className="text-xs font-medium text-muted-foreground">Total Enrollments</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-2xl font-bold text-foreground">{stats.totalEnrollments}</p>
+                  <p className="text-2xl font-bold text-foreground tabular-nums">{stats.totalEnrollments}</p>
                 </CardContent>
               </Card>
               <Card>
@@ -269,7 +305,7 @@ export default function AdminDashboard() {
                   <CardTitle className="text-xs font-medium text-muted-foreground">Synced</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-2xl font-bold text-success">{stats.uploaded}</p>
+                  <p className="text-2xl font-bold text-success tabular-nums">{stats.uploaded}</p>
                 </CardContent>
               </Card>
               <Card>
@@ -277,7 +313,7 @@ export default function AdminDashboard() {
                   <CardTitle className="text-xs font-medium text-muted-foreground">Pending</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-2xl font-bold text-warning">{stats.pendingSync}</p>
+                  <p className="text-2xl font-bold text-warning tabular-nums">{stats.pendingSync}</p>
                 </CardContent>
               </Card>
               <Card>
@@ -285,7 +321,7 @@ export default function AdminDashboard() {
                   <CardTitle className="text-xs font-medium text-muted-foreground">Failed</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-2xl font-bold text-destructive">{stats.failed}</p>
+                  <p className="text-2xl font-bold text-destructive tabular-nums">{stats.failed}</p>
                 </CardContent>
               </Card>
             </div>
@@ -581,10 +617,10 @@ export default function AdminDashboard() {
                                 Set as Officer
                               </DropdownMenuItem>
                               <DropdownMenuItem onClick={() => updateUserRole(user.user_id, 'supervisor')}>
-                                Set as Supervisor
+                                Set as Facility Admin
                               </DropdownMenuItem>
                               <DropdownMenuItem onClick={() => updateUserRole(user.user_id, 'admin')}>
-                                Set as Admin
+                                Set as Super Admin
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>

@@ -188,14 +188,14 @@ export default function FacialCapture() {
   };
 
   const handleProceed = () => {
-    navigate('/liveness-check');
+    navigate('/enrollment-review');
   };
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <PageHeader 
         title="Facial Capture"
-        subtitle={`Step ${currentStep + 1} of ${captureSteps.length}`}
+        subtitle={`Step ${currentStep + 1} of ${captureSteps.length} — ${captureSteps[currentStep].label}`}
         rightElement={
           <button
             onClick={switchCamera}

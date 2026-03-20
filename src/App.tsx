@@ -13,7 +13,6 @@ import { AdminRoute } from "./components/AdminRoute";
 import Profile from "./pages/Profile";
 import EnrollmentForm from "./pages/EnrollmentForm";
 import FacialCapture from "./pages/FacialCapture";
-import LivenessCheck from "./pages/LivenessCheck";
 import EnrollmentReview from "./pages/EnrollmentReview";
 import EnrollmentSuccess from "./pages/EnrollmentSuccess";
 import SyncScreen from "./pages/SyncScreen";

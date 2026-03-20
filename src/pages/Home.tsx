@@ -8,7 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { StatusBadge } from '@/components/StatusBadge';
 import { Button } from '@/components/ui/button';
-import { UserPlus, ShieldCheck, RefreshCw, Users, Fingerprint, LogOut, UserCircle, Settings } from 'lucide-react';
+import { UserPlus, ShieldCheck, RefreshCw, Fingerprint, LogOut, UserCircle, Settings } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function Home() {

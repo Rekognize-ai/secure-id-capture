@@ -262,6 +262,34 @@ export default function AdminDashboard() {
 
           {/* Statistics Tab */}
           <TabsContent value="stats" className="space-y-4 mt-4">
+            {/* HQ Headline Metrics */}
+            <div className="grid grid-cols-2 gap-4">
+              <Card className="border-primary/30 bg-primary/5">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-xs font-semibold text-primary uppercase tracking-wider flex items-center gap-1.5">
+                    <Users className="h-3.5 w-3.5" />
+                    Total Enrolled Inmates
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-3xl font-bold text-foreground tabular-nums">{stats.inmates}</p>
+                  <p className="text-xs text-muted-foreground mt-1">Across all facilities</p>
+                </CardContent>
+              </Card>
+              <Card className="border-info/30 bg-info/5">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-xs font-semibold text-info uppercase tracking-wider flex items-center gap-1.5">
+                    <Fingerprint className="h-3.5 w-3.5" />
+                    Today's Events
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-3xl font-bold text-foreground tabular-nums">{stats.dailyEvents}</p>
+                  <p className="text-xs text-muted-foreground mt-1">Enrollments today</p>
+                </CardContent>
+              </Card>
+            </div>
+
             {/* Summary Cards */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               <Card>
@@ -269,7 +297,7 @@ export default function AdminDashboard() {
                   <CardTitle className="text-xs font-medium text-muted-foreground">Total Enrollments</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-2xl font-bold text-foreground">{stats.totalEnrollments}</p>
+                  <p className="text-2xl font-bold text-foreground tabular-nums">{stats.totalEnrollments}</p>
                 </CardContent>
               </Card>
               <Card>
@@ -277,7 +305,7 @@ export default function AdminDashboard() {
                   <CardTitle className="text-xs font-medium text-muted-foreground">Synced</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-2xl font-bold text-success">{stats.uploaded}</p>
+                  <p className="text-2xl font-bold text-success tabular-nums">{stats.uploaded}</p>
                 </CardContent>
               </Card>
               <Card>
@@ -285,7 +313,7 @@ export default function AdminDashboard() {
                   <CardTitle className="text-xs font-medium text-muted-foreground">Pending</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-2xl font-bold text-warning">{stats.pendingSync}</p>
+                  <p className="text-2xl font-bold text-warning tabular-nums">{stats.pendingSync}</p>
                 </CardContent>
               </Card>
               <Card>
@@ -293,7 +321,7 @@ export default function AdminDashboard() {
                   <CardTitle className="text-xs font-medium text-muted-foreground">Failed</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-2xl font-bold text-destructive">{stats.failed}</p>
+                  <p className="text-2xl font-bold text-destructive tabular-nums">{stats.failed}</p>
                 </CardContent>
               </Card>
             </div>

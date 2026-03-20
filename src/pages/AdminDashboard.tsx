@@ -215,9 +215,9 @@ export default function AdminDashboard() {
   const getRoleBadge = (role: string) => {
     switch (role) {
       case 'admin':
-        return <Badge className="bg-primary text-primary-foreground">Admin</Badge>;
+        return <Badge className="bg-primary text-primary-foreground">Super Admin</Badge>;
       case 'supervisor':
-        return <Badge className="bg-accent text-accent-foreground">Supervisor</Badge>;
+        return <Badge className="bg-accent text-accent-foreground">Facility Admin</Badge>;
       default:
         return <Badge variant="secondary">Officer</Badge>;
     }

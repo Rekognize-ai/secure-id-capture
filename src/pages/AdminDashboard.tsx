@@ -56,6 +56,7 @@ export default function AdminDashboard() {
     inmates: 0,
     staff: 0,
     totalUsers: 0,
+    dailyEvents: 0,
   });
 
   // Chart data

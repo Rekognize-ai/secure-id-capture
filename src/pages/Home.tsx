@@ -130,16 +130,6 @@ export default function Home() {
             Enroll Inmate
           </PrimaryButton>
 
-          <PrimaryButton
-            variant="outline"
-            size="xl"
-            fullWidth
-            icon={<Users size={24} />}
-            onClick={handleEnrollStaff}
-          >
-            Enroll Staff
-          </PrimaryButton>
-
           <div className="pt-4 border-t border-border mt-6">
             <PrimaryButton
               variant="secondary"

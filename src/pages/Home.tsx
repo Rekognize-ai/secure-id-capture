@@ -44,10 +44,6 @@ export default function Home() {
     navigate('/enrollment-form');
   };
 
-  const handleEnrollStaff = () => {
-    setEnrollmentType('staff');
-    navigate('/enrollment-form');
-  };
 
   const handleSignOut = async () => {
     const { error } = await signOut();

@@ -123,6 +123,12 @@ export default function AdminDashboard() {
 
       setUsers(usersWithRoles);
 
+      // Calculate daily events (enrollments created today)
+      const todayStart = startOfDay(new Date());
+      const dailyEvents = enrollmentData?.filter(e => {
+        return new Date(e.created_at) >= todayStart;
+      }).length || 0;
+
       setStats({
         totalEnrollments: total,
         pendingSync: pending,
@@ -131,6 +137,7 @@ export default function AdminDashboard() {
         inmates,
         staff,
         totalUsers: profileData?.length || 0,
+        dailyEvents,
       });
     } catch (error) {
       logger.error('Failed to load dashboard data', error);

@@ -198,7 +198,7 @@ export default function Home() {
       {/* Footer */}
       <footer className="px-6 py-4 text-center">
         <p className="text-xs text-muted-foreground">
-          Prison Enrollment System v1.0
+          Rekognize Inmate Platform v1.0
         </p>
       </footer>
     </div>

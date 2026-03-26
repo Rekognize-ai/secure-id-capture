@@ -106,9 +106,9 @@ export default function Home() {
           </div>
           <div>
             <h1 className="text-2xl font-bold">
-              {officerName ? `Welcome, ${officerName}` : 'Prison Enrollment'}
+              {officerName ? `Welcome, ${officerName}` : 'Rekognize'}
             </h1>
-            <p className="text-primary-foreground/80">Enrollment System</p>
+            <p className="text-primary-foreground/80">Inmate Platform</p>
           </div>
         </div>
       </header>
@@ -198,7 +198,7 @@ export default function Home() {
       {/* Footer */}
       <footer className="px-6 py-4 text-center">
         <p className="text-xs text-muted-foreground">
-          Prison Enrollment System v1.0
+          Rekognize Inmate Platform v1.0
         </p>
       </footer>
     </div>

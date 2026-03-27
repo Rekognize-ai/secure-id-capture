@@ -8,8 +8,14 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 
 import Auth from "./pages/Auth";
 import Home from "./pages/Home";
-import AdminDashboard from "./pages/AdminDashboard";
 import { AdminRoute } from "./components/AdminRoute";
+import AdminLayout from "./components/admin/AdminLayout";
+import DashboardOverview from "./pages/admin/DashboardOverview";
+import InmateRecords from "./pages/admin/InmateRecords";
+import InmateProfile from "./pages/admin/InmateProfile";
+import FaceSearch from "./pages/admin/FaceSearch";
+import Reports from "./pages/admin/Reports";
+import AdminSettings from "./pages/admin/AdminSettings";
 import Profile from "./pages/Profile";
 import EnrollmentForm from "./pages/EnrollmentForm";
 import FacialCapture from "./pages/FacialCapture";
@@ -34,12 +40,21 @@ const App = () => (
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="/enrollment-form" element={<ProtectedRoute><EnrollmentForm /></ProtectedRoute>} />
             <Route path="/facial-capture" element={<ProtectedRoute><FacialCapture /></ProtectedRoute>} />
-            
             <Route path="/enrollment-review" element={<ProtectedRoute><EnrollmentReview /></ProtectedRoute>} />
             <Route path="/enrollment-success" element={<ProtectedRoute><EnrollmentSuccess /></ProtectedRoute>} />
             <Route path="/sync" element={<ProtectedRoute><SyncScreen /></ProtectedRoute>} />
             <Route path="/verify" element={<ProtectedRoute><VerifyIdentity /></ProtectedRoute>} />
-            <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+            
+            {/* Admin Routes */}
+            <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
+              <Route index element={<DashboardOverview />} />
+              <Route path="inmates" element={<InmateRecords />} />
+              <Route path="inmates/:id" element={<InmateProfile />} />
+              <Route path="face-search" element={<FaceSearch />} />
+              <Route path="reports" element={<Reports />} />
+              <Route path="settings" element={<AdminSettings />} />
+            </Route>
+            
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
